@@ -1,0 +1,3 @@
+-- Initial findings from data quality check:
+-- After performing a data quality check on the diabetes monitoring dataset, the following issues were identified:
+-- 1. Missing Values: Several records had missing values in critical fields such as 'HbA1c' and 'Fasting Blood Sugar'.
