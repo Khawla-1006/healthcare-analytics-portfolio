@@ -71,3 +71,30 @@ ALTER TABLE data_backup RENAME COLUMN `Admission Type` TO admission_type;
 ALTER TABLE data_backup RENAME COLUMN `Discharge Date` TO discharge_date;
 ALTER TABLE data_backup RENAME COLUMN `Test Results` TO test_results;
 ALTER TABLE data_backup RENAME COLUMN `Length of Stay` TO length_of_stay;
+
+-- [DATA QUALITY ANOMALY DETECTED]: Structural text encoding issue observed in medical conditions.
+-- 'Alzheimer' contains corrupted symbols/typos impacting text standardization.
+-- Resolution Path: Will apply a targeted UPDATE/REPLACE statement during the transformation phase.
+
+SELECT  medical_condition, COUNT(medical_condition) AS case_volume
+FROM data_backup
+WHERE medical_condition LIKE "%Alz%"
+GROUP BY medical_condition;
+
+-- ================================================================================
+-- DATA TRANSFORMATION: Text Encoding & Safe Mode Override
+-- PROBLEM: The 'medical_condition' column contains corrupted character strings 
+-- ('â€™s') due to an ASCII/UTF-8 encoding failure during raw data generation. 
+-- RATIONALE: MySQL blocks mass updates by default under 'Safe Update Mode' 
+-- when a primary key is not used in the WHERE clause. 
+-- ACTION: Temporarily disabling SQL_SAFE_UPDATES to perform column-wide text 
+-- standardization, removing encoding artifacts, and re-enabling safety protocols.
+-- ================================================================================
+
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE data_backup
+SET medical_condition = REPLACE(medical_condition, 'â€™s', 's')
+WHERE medical_condition LIKE '%Alz%';
+
+SET SQL_SAFE_UPDATES = 1;
