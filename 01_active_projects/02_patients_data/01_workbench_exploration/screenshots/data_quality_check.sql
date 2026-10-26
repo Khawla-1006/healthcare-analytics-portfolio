@@ -49,3 +49,25 @@ i find a duplicate record for the patient "Kathy Butler" same admission date, sa
 ==> Logically impossible for a single patient to occupy same bed concurrently under distinct clinical encounters.
 VERIDICT: Keeping flagged to show data auditing capabilities, but will remove duplicates in the next step to ensure data integrity for analysis. 
 */
+
+-- 02- Standardize the data
+
+-- ================================================================================
+-- DATA SCHEMA STANDARDIZATION: Column Renaming
+-- RATIONALE: The raw dataset contains column names with spaces and uppercase letters,
+-- which forces the system to require persistent backticks (``). 
+-- Action: Refactoring the schema to standard lowercase 'snake_case' formatting 
+-- to optimize query readability, prevent syntax errors, and streamline future code.
+-- ================================================================================
+
+
+ALTER TABLE data_backup RENAME COLUMN `Medical Condition` TO medical_condition;
+ALTER TABLE data_backup RENAME COLUMN `Blood Type` TO blood_type;
+ALTER TABLE data_backup RENAME COLUMN `Date of Admission` TO date_of_admission;
+ALTER TABLE data_backup RENAME COLUMN `Insurance Provider` TO insurance_provider;
+ALTER TABLE data_backup RENAME COLUMN `Billing Amount` TO billing_amount;
+ALTER TABLE data_backup RENAME COLUMN `Room Number` TO room_number;
+ALTER TABLE data_backup RENAME COLUMN `Admission Type` TO admission_type;
+ALTER TABLE data_backup RENAME COLUMN `Discharge Date` TO discharge_date;
+ALTER TABLE data_backup RENAME COLUMN `Test Results` TO test_results;
+ALTER TABLE data_backup RENAME COLUMN `Length of Stay` TO length_of_stay;
