@@ -18,6 +18,7 @@ USE healthcare_portfolio;
 -- 01- Remove Duplicates if there are any
 -- 02- Standardize the data 
 -- 03- Check for chronological date errors
+-- 03- Check for distribution of categorical variables (blood type, gender, insurance provider, etc.)
 
 -- First of all, i create a backup staging table of the raw data before starting the cleaning process
 CREATE TABLE data_backup AS
@@ -133,3 +134,21 @@ SET SQL_SAFE_UPDATES = 1;
 -- Observation: Query returned 0 rows after transforming columns to true DATE types.
 -- Integrity Confirmed: The system-calculated 'length_of_stay' column matches the 
 -- mathematical DATEDIFF calculation perfectly. No chronological anomalies exist.
+
+-- 04- Check for distribution of categorical variables (blood type, gender, insurance provider, etc.)
+
+SELECT 
+	blood_type,
+    COUNT(*) AS patient_volume,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS population_percentage
+FROM data_backup
+GROUP BY blood_type
+ORDER BY patient_volume DESC;
+
+
+SELECT 
+	COUNT(*),
+    SUM(CASE WHEN test_results IS NULL OR test_results = '' THEN 1 ELSE 0 END) AS null_test_results,
+    SUM(CASE WHEN medical_condition IS NULL OR medical_condition = '' THEN 1 ELSE 0 END) AS null_medication,
+    SUM(CASE WHEN room_number IS NULL OR room_number = '' THEN 1 ELSE 0 END) AS null_room_num
+FROM data_backup;
