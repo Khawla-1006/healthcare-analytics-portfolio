@@ -14,10 +14,10 @@ DESCRIPTION: This script performs the initial data quality check on a flat table
 -- changed the database to healthcare_portfolio to ensure the script runs in the correct context
 USE healthcare_portfolio;
 
-
--- 01- Remove Duplicates id there are any
+-- Data quality check process is divided into three main steps:
+-- 01- Remove Duplicates if there are any
 -- 02- Standardize the data 
--- 03- Null values or blanks in the data
+-- 03- Check for chronological date errors
 
 -- First of all, i create a backup staging table of the raw data before starting the cleaning process
 CREATE TABLE data_backup AS
@@ -98,3 +98,19 @@ SET medical_condition = REPLACE(medical_condition, 'â€™s', 's')
 WHERE medical_condition LIKE '%Alz%';
 
 SET SQL_SAFE_UPDATES = 1;
+
+
+-- 03- Check for chronological date errors:
+
+-- validating mathematical accuracy of the system calculated length_of_stay against the actual difference between discharge_date and date_of_admission.
+SELECT 
+date_of_admission,
+discharge_date,
+length_of_stay AS system_los,
+DATEDIFF(discharge_date, date_of_admission) AS calculated_los,
+(length_of_stay - DATEDIFF(discharge_date, date_of_admission)) AS los_variation
+FROM data_backup
+WHERE date_of_admission > discharge_date
+		OR length_of_stay <> DATEDIFF(discharge_date, date_of_admission);
+
+-- 0 rows returned: integrity verified :)
