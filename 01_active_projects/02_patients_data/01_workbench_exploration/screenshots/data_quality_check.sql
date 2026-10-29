@@ -152,3 +152,10 @@ SELECT
     SUM(CASE WHEN medical_condition IS NULL OR medical_condition = '' THEN 1 ELSE 0 END) AS null_medication,
     SUM(CASE WHEN room_number IS NULL OR room_number = '' THEN 1 ELSE 0 END) AS null_room_num
 FROM data_backup;
+
+SELECT COUNT(*) AS billing_nulls
+FROM data_backup
+WHERE billing_amount IS NULL OR billing_amount = '';
+
+SELECT MAX(Age) AS max_age, MIN(Age) AS min_age
+FROM data_backup;
