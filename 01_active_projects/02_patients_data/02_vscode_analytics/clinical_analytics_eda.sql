@@ -32,3 +32,16 @@ SELECT
 FROM clean_data
 GROUP BY  medical_condition, age_cohort, gender
 ORDER BY medical_condition, total_cases DESC;
+
+-- 02- TREATMENT EFFICIENCY: Medication Performance and recovery Velocity (LOS)
+-- ->measures how effective medications are by tracking how long patients stay based on their test results.
+SELECT 
+	medical_condition,
+    medication,
+    test_results,
+    COUNT(*) AS total_patients,
+    ROUND(AVG(length_of_stay),1) AS avg_length_of_stay,
+    ROUND((SUM(CASE WHEN test_results = 'Normal' THEN 1 ELSE 0 END)/ COUNT(*))*100,2) AS normal_outcome_rate_pct
+FROM clean_data
+GROUP BY medical_condition, medication, test_results
+ORDER BY medical_condition, normal_outcome_rate_pct DESC; 
