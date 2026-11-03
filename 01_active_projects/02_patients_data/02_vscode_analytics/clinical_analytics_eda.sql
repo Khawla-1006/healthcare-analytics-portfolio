@@ -45,3 +45,19 @@ SELECT
 FROM clean_data
 GROUP BY medical_condition, medication, test_results
 ORDER BY medical_condition, normal_outcome_rate_pct DESC; 
+
+-- 03- CLINICAL RISK TREND : Patients Health Stratification and risk flagging
+-- -> Flags clinical risk trends by looking at vulnerable demographics with severe/abnormal profiles.
+SELECT 
+	medical_condition,
+    CASE
+		WHEN age >= 65 AND test_results = 'Abnormal' THEN 'High Risk (Geriatric + Abnormal)'
+        WHEN test_results = 'Abnormal' THEN 'Medium Risk (Abnormal Result)'
+        ELSE 'Low Risk (Normal/Inconclusive)'
+    END AS clinical_risk_tier,
+    COUNT(*) AS patient_count,
+    ROUND(AVG(length_of_stay),1) AS avg_los,
+    GROUP_CONCAT(DISTINCT blood_type ORDER BY blood_type SEPARATOR ', ') AS observed_blood_types
+FROM clean_data
+GROUP BY medical_condition, clinical_risk_tier
+ORDER BY medical_condition, patient_count DESC; 
