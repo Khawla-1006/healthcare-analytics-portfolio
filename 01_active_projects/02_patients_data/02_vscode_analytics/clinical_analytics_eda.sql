@@ -34,30 +34,42 @@ GROUP BY  medical_condition, age_cohort, gender
 ORDER BY medical_condition, total_cases DESC;
 
 -- 02- TREATMENT EFFICIENCY: Medication Performance and recovery Velocity (LOS)
--- ->measures how effective medications are by tracking how long patients stay based on their test results.
+-- ->measures how effective medications are by tracking the average length of stay (LOS) for patients with specific medical conditions.
 SELECT 
-	medical_condition,
+    medical_condition,
     medication,
-    test_results,
-    COUNT(*) AS total_patients,
-    ROUND(AVG(length_of_stay),1) AS avg_length_of_stay,
-    ROUND((SUM(CASE WHEN test_results = 'Normal' THEN 1 ELSE 0 END)/ COUNT(*))*100,2) AS normal_outcome_rate_pct
+    COUNT(*) AS total_prescriptions,
+    ROUND(AVG(length_of_stay), 1) AS avg_length_of_stay,
+    -- Tracks the % of patients who recover fast on this specific drug
+    ROUND((SUM(CASE WHEN length_of_stay <= 3 THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2) AS rapid_discharge_rate_pct
 FROM clean_data
-GROUP BY medical_condition, medication, test_results
-ORDER BY medical_condition, normal_outcome_rate_pct DESC; 
+GROUP BY medical_condition, medication
+HAVING total_prescriptions >= 5
+ORDER BY medical_condition, avg_length_of_stay ASC;
 
--- 03- CLINICAL RISK TREND : Patients Health Stratification and risk flagging
--- -> Flags clinical risk trends by looking at vulnerable demographics with severe/abnormal profiles.
+-- 03- CLINICAL RISK TREND : GLOBAL CLINICAL RISK PROFILING (MACRO VIEW)
+-- -> groups patients into risk categories based on their test results and length of stay (LOS), providing a macro view of clinical risk trends across the patient population.
+WITH patient_profiling AS (
+    SELECT 
+        medical_condition,
+        length_of_stay,
+        CASE 
+            WHEN test_results = 'Abnormal' AND length_of_stay > 7 THEN 'Acute / Severe Case'
+            WHEN test_results = 'Abnormal' AND length_of_stay <= 7 THEN 'Acute / Well-Managed Case'
+            WHEN test_results = 'Normal' AND length_of_stay <= 3 THEN 'Symptomatic / Acute Preventative Care'
+            ELSE 'Routine Management / Stable Chronic'
+        END AS clinical_profile
+    FROM clean_data
+)
 SELECT 
-	medical_condition,
-    CASE
-		WHEN age >= 65 AND test_results = 'Abnormal' THEN 'High Risk (Geriatric + Abnormal)'
-        WHEN test_results = 'Abnormal' THEN 'Medium Risk (Abnormal Result)'
-        ELSE 'Low Risk (Normal/Inconclusive)'
-    END AS clinical_risk_tier,
-    COUNT(*) AS patient_count,
-    ROUND(AVG(length_of_stay),1) AS avg_los,
-    GROUP_CONCAT(DISTINCT blood_type ORDER BY blood_type SEPARATOR ', ') AS observed_blood_types
-FROM clean_data
-GROUP BY medical_condition, clinical_risk_tier
-ORDER BY medical_condition, patient_count DESC; 
+    medical_condition,
+    clinical_profile,
+    COUNT(*) AS total_patients,
+    ROUND(AVG(length_of_stay), 1) AS avg_length_of_stay,
+    ROUND((COUNT(*) / SUM(COUNT(*)) OVER(PARTITION BY medical_condition)) * 100, 2) AS profile_distribution_pct
+FROM patient_profiling
+GROUP BY medical_condition, clinical_profile
+ORDER BY medical_condition, total_patients DESC;
+
+
+
