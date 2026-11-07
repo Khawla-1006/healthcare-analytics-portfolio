@@ -47,5 +47,19 @@
 * **Granularity Control:** By separating macro risk trends from micro medication performance metrics into two clean SQL views, the backend logic dramatically simplifies dashboard filter actions (slicers).
 * **Dashboard Readiness:** The resulting output yields clean, predictable categorical dimensions, preventing visual clutter in Power BI matrix visuals and ensuring an indisputable, logical data narrative for stakeholders.
 
-## 6. Financial Logic Validation & Revenue Refactoring
--- Ongoing...
+## 6. Financial Root-Cause Analysis: Overturning the "False" Expense Rank
+*This section highlights a major analytical discovery made during the refactoring of Phase 3 financial metrics.*
+
+* **The Challenge:** The initial baseline query attempted to evaluate financial risk using a generic "Super-User" outlier list (Top 10% highest billing individual patients). This failed to provide macro-level business insights regarding which clinical pathologies truly drain hospital resources on a daily operational level.
+* **The Refactoring Shift:** I overrode the individual tracking query to engineer two side-by-side pathology benchmarking models: 
+  1. *Query A:* Total/Average Billing per Medical Condition (Macro Burden).
+  2. *Query B:* Average Cost per Day vs. Average Length of Stay (Financial Intensity Velocity).
+
+### 🔍 Key Discovery: The Asthma vs. Alzheimer's Paradox
+By keeping both queries to cross-examine the data, I uncovered a critical operational anomaly that would have severely skewed hospital budgeting if left unnoticed:
+
+* **The Alzheimer’s Illusion:** In the total billing query, Alzheimer’s ranked as the 3rd most expensive condition. However, the root-cause query revealed this was a **"false financial expense rank."** The daily intensity rank dropped Alzheimer's to 7th place. The high total bill was driven purely by an extreme **Average Length of Stay (54.4 days)** of low-intensity room occupancy, rather than expensive active medical interventions.
+* **The Asthma Reality:** Conversely, Asthma jumped to **2nd place in real daily intensity**, despite having a remarkably short **Average Length of Stay (3.5 days)**. This proves that Asthma care is highly intense, requiring expensive acute medications, rapid diagnostic lab tests, or respiratory therapies upfront.
+
+### 🎨 Strategic Downstream Reporting (Power BI Implementation)
+Instead of deleting the first query, I preserved both models. In the upcoming Power BI dashboard, this will be visualized using a **Scatter Plot Matrix (X-Axis: Length of Stay, Y-Axis: Cost per Day)**. This explicitly allows hospital executives to instantly separate "High-Occupancy/Low-Cost" chronic conditions from "Low-Occupancy/High-Cost" acute emergency interventions.
