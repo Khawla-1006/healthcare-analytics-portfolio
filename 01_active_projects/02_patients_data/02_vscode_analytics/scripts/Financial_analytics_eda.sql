@@ -28,3 +28,18 @@ SELECT
 FROM clean_data 
 GROUP BY insurance_provider
 ORDER BY total_gross_billing DESC;
+
+
+-- 2. HOSPITAL COST COMPARISON: Most Expensive Hospital Profiles
+
+SELECT 
+    hospital_name,
+    COUNT(*) AS total_admissions,
+    ROUND(SUM(billing_amount), 2) AS total_hospital_revenue,
+    ROUND(AVG(billing_amount), 2) AS avg_hospital_bill,
+    -- Calculates the average financial turnover per bed-day at this specific facility
+    ROUND(AVG(billing_amount / NULLIF(length_of_stay, 0)), 2) AS avg_cost_per_day
+FROM clean_data
+GROUP BY hospital_name
+ORDER BY avg_hospital_bill DESC;
+
