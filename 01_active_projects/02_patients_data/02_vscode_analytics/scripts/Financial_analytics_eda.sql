@@ -65,3 +65,36 @@ SELECT
 FROM los_financial_buckets
 GROUP BY stay_category
 ORDER BY MIN(length_of_stay);
+
+-- 4.PATHOLOGY COST BENCHMARKING (WHICH CONDITION IS MOST EXPENSIVE)
+
+SELECT 
+    medical_condition,
+    COUNT(*) AS total_cases,
+    ROUND(SUM(billing_amount), 2) AS total_condition_spend,
+    ROUND(AVG(billing_amount), 2) AS avg_billing_per_condition,
+    ROUND(MAX(billing_amount), 2) AS highest_single_condition_bill,
+    -- Ranks pathologies from most expensive average to least expensive
+    RANK() OVER (ORDER BY AVG(billing_amount) DESC) AS financial_expense_rank
+FROM clean_data 
+GROUP BY medical_condition
+ORDER BY avg_billing_per_condition DESC;
+
+--  UPDATED_VER: PATHOLOGY COST-DRIVER DIAGNOSTICS (LOS VS. INTENSITY)
+SELECT 
+    medical_condition,
+    COUNT(*) AS total_cases,
+    ROUND(AVG(length_of_stay), 1) AS avg_length_of_stay,
+    ROUND(AVG(billing_amount), 2) AS avg_total_billing,
+    
+    -- Core Metric: Calculates the financial intensity per day of hospitalization
+    ROUND(AVG(billing_amount / NULLIF(length_of_stay, 0)), 2) AS avg_cost_per_day,
+    
+    -- Clinical Context: % of cases entering with abnormal baselines to measure complexity
+    ROUND((SUM(CASE WHEN test_results = 'Abnormal' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2) AS abnormal_admission_rate_pct,
+    
+    -- Global Rank based on the daily financial intensity
+    RANK() OVER (ORDER BY AVG(billing_amount / NULLIF(length_of_stay, 0)) DESC) AS daily_intensity_rank
+FROM clean_data
+GROUP BY medical_condition
+ORDER BY avg_cost_per_day DESC;
