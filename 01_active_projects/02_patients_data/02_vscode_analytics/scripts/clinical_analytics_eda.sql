@@ -7,7 +7,7 @@ DATASET: Kaggle Healthcare Dataset (Single-Table Alternative)
 
 DESCRIPTION:
 This script performs exploratory data analysis (EDA) focusing on patient outcomes,
-treatment efficacy, clinical risk profiles, and hospital resource utilization.
+treatment efficacy, clinical risk profiles.
 By analyzing patterns across medical conditions, test results, lengths of stay(LOS),
 and medications, these queries uncover actionable insights to optimize clinical 
 workflows, identify high_risk patient trends and measure care delivery performance.
